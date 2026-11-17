@@ -26,6 +26,8 @@ const io = new Server(server, {
   pingTimeout: 5000
 });
 
+const gameManager = new GameManager(io);
+
 app.use(cors());
 app.use(express.json());
 
@@ -44,7 +46,7 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     game: 'Mystery Mansion',
-    activeRooms: gameManager ? gameManager.rooms.size : 0,
+    activeRooms: gameManager.rooms.size,
     uptime: process.uptime()
   });
 });
@@ -57,8 +59,6 @@ app.get('/', (req, res) => {
   }
   return res.status(200).send('🏰 Mystery Mansion Game Server is LIVE & HEALTHY. WebSocket is ready.');
 });
-
-const gameManager = new GameManager(io);
 
 io.on('connection', (socket) => {
   // Room Creation
