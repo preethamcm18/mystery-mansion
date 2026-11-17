@@ -301,6 +301,60 @@ input[type="text"]:focus {
   margin-bottom: 12px;
 }
 
+.server-config-section {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.server-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(14, 16, 24, 0.8);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.server-status-pill span#server-status-text {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.server-settings-drawer {
+  margin-top: 12px;
+  background: rgba(10, 12, 18, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.server-settings-drawer label {
+  font-size: 0.78rem;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.server-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.server-input-row input {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.server-help-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: block;
+}
+
 /* 3. Lobby Box */
 .lobby-box {
   max-width: 960px;

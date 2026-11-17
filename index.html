@@ -52,6 +52,24 @@
             <button id="btn-join-room" class="secondary-btn">JOIN ROOM</button>
           </div>
         </div>
+
+        <!-- Multiplayer Server Connection Details -->
+        <div class="server-config-section">
+          <div class="server-status-pill">
+            <span id="server-status-dot" class="status-dot online"></span>
+            <span id="server-status-text">Server: Connecting...</span>
+            <button id="btn-toggle-server-settings" class="tiny-btn">Configure</button>
+          </div>
+          <div id="server-settings-drawer" class="server-settings-drawer hidden">
+            <label for="input-custom-server">Backend Server URL (e.g. Render Web Service):</label>
+            <div class="server-input-row">
+              <input type="text" id="input-custom-server" placeholder="https://mystery-mansion-backend.onrender.com">
+              <button id="btn-save-server" class="tiny-btn">Save & Connect</button>
+              <button id="btn-reset-server" class="tiny-btn">Reset</button>
+            </div>
+            <small class="server-help-note">Note: Free Render backends sleep after 15m inactivity and take ~30s to wake up on first visit.</small>
+          </div>
+        </div>
       </div>
     </div>
 

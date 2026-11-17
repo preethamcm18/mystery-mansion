@@ -38,6 +38,18 @@ export class UIManager {
     this.setupEvents();
   }
 
+  updateServerStatus(connected, url) {
+    const dot = document.getElementById('server-status-dot');
+    const text = document.getElementById('server-status-text');
+    if (dot) {
+      dot.className = `status-dot ${connected ? 'online' : 'offline'}`;
+    }
+    if (text) {
+      const cleanUrl = url ? url.replace(/^https?:\/\//, '') : 'localhost';
+      text.textContent = connected ? `Connected: ${cleanUrl}` : `Reconnecting: ${cleanUrl}`;
+    }
+  }
+
   showScreen(screen) {
     const screens = [
       this.screenWelcome,
@@ -96,6 +108,55 @@ export class UIManager {
         this.network.joinRoom(code, name);
       });
     }
+
+    // Menu: Server Config Toggle & Save
+    const btnToggleServer = document.getElementById('btn-toggle-server-settings');
+    const serverDrawer = document.getElementById('server-settings-drawer');
+    const inputCustomServer = document.getElementById('input-custom-server');
+    const btnSaveServer = document.getElementById('btn-save-server');
+    const btnResetServer = document.getElementById('btn-reset-server');
+
+    if (inputCustomServer) {
+      inputCustomServer.value = localStorage.getItem('mm_custom_server_url') || this.network.serverUrl || '';
+    }
+
+    if (btnToggleServer && serverDrawer) {
+      btnToggleServer.addEventListener('click', () => {
+        serverDrawer.classList.toggle('hidden');
+      });
+    }
+
+    if (btnSaveServer && inputCustomServer) {
+      btnSaveServer.addEventListener('click', () => {
+        const url = inputCustomServer.value.trim();
+        this.network.setCustomServer(url);
+        this.showToast(`Connecting to ${url || 'default server'}...`);
+        if (serverDrawer) serverDrawer.classList.add('hidden');
+      });
+    }
+
+    if (btnResetServer) {
+      btnResetServer.addEventListener('click', () => {
+        localStorage.removeItem('mm_custom_server_url');
+        this.network.setCustomServer('');
+        if (inputCustomServer) inputCustomServer.value = '';
+        this.showToast('Reset server to default.');
+        if (serverDrawer) serverDrawer.classList.add('hidden');
+      });
+    }
+
+    // Network connection status display
+    this.network.on('connect', () => {
+      this.updateServerStatus(true, this.network.serverUrl);
+    });
+
+    this.network.on('disconnect', () => {
+      this.updateServerStatus(false, this.network.serverUrl);
+    });
+
+    this.network.on('error', () => {
+      this.updateServerStatus(false, this.network.serverUrl);
+    });
 
     // Lobby: Copy Code
     const btnCopyCode = document.getElementById('btn-copy-code');

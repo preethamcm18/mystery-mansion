@@ -19,14 +19,21 @@ export class Network {
 
   initSocket() {
     // In production or when hosted, VITE_SERVER_URL can point to Render/custom domain
-    // If not provided, fallback to current origin (which works on unified full-stack hosting or Vite proxy)
-    const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin;
+    // Supports environment variable, localStorage override, or current origin
+    const customUrl = localStorage.getItem('mm_custom_server_url');
+    const envUrl = import.meta.env.VITE_SERVER_URL;
+    const serverUrl = customUrl || envUrl || window.location.origin;
+    this.serverUrl = serverUrl;
 
     console.log(`📡 Connecting to multiplayer server at: ${serverUrl}`);
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+
     this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000
+      reconnectionAttempts: 20,
+      reconnectionDelay: 1500
     });
 
     this.socket.on('connect', () => {
@@ -77,6 +84,15 @@ export class Network {
     this.socket.on('timer_sync', (data) => this.trigger('timer_sync', data));
     this.socket.on('objective_updated', (data) => this.trigger('objective_updated', data));
     this.socket.on('game_ended', (data) => this.trigger('game_ended', data));
+  }
+
+  setCustomServer(url) {
+    if (url && url.trim()) {
+      localStorage.setItem('mm_custom_server_url', url.trim());
+    } else {
+      localStorage.removeItem('mm_custom_server_url');
+    }
+    this.initSocket();
   }
 
   on(event, callback) {
