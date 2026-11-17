@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MYSTERY MANSION — 4-Player 3D Mystery Adventure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <!-- 3D Three.js Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <div id="ui-root">
+    <!-- 1. WELCOME SCREEN -->
+    <div id="screen-welcome" class="screen-overlay">
+      <div class="welcome-box">
+        <div class="mansion-crest">🏛️</div>
+        <h1 class="game-title">MYSTERY MANSION</h1>
+        <h2 class="game-subtitle">Four Players. One Mansion. Countless Secrets.</h2>
+        <p class="game-tagline">Trust Your Team. Share Your Clues. Discover The Truth.</p>
+        <button id="btn-enter-mansion" class="gold-btn pulse-glow">ENTER THE MANSION</button>
+        <div class="platform-badges">
+          <span>📱 Mobile & Tablets</span>
+          <span>💻 Windows & Mac</span>
+          <span>🌐 Zero Install Required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MAIN MENU / ROOM SETUP -->
+    <div id="screen-menu" class="screen-overlay hidden">
+      <div class="menu-box">
+        <h2 class="section-title">INVESTIGATOR DOSSIER</h2>
+        <div class="input-group">
+          <label for="input-player-name">Your Investigator Name</label>
+          <input type="text" id="input-player-name" placeholder="e.g. Detective Holmes" maxlength="16" value="Investigator">
+        </div>
+
+        <div class="room-actions-grid">
+          <div class="action-card">
+            <h3>HOST A NEW EXPEDITION</h3>
+            <p>Generate a room code and invite 3 teammates to join you.</p>
+            <button id="btn-create-room" class="gold-btn">CREATE ROOM</button>
+          </div>
+          <div class="action-card">
+            <h3>JOIN AN EXISTING TEAM</h3>
+            <p>Enter the 5-letter room code provided by your host.</p>
+            <input type="text" id="input-room-code" placeholder="ROOM CODE (e.g. ABCDE)" maxlength="6" style="text-transform: uppercase;">
+            <button id="btn-join-room" class="secondary-btn">JOIN ROOM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MULTIPLAYER LOBBY -->
+    <div id="screen-lobby" class="screen-overlay hidden">
+      <div class="lobby-box">
+        <div class="lobby-header">
+          <div>
+            <span class="lobby-label">EXPEDITION CODE:</span>
+            <span id="lobby-code-display" class="code-pill">-----</span>
+            <button id="btn-copy-code" class="tiny-btn" title="Copy Room Code">📋 COPY</button>
+          </div>
+          <div id="lobby-player-count" class="count-pill">1/4 Players</div>
+        </div>
+
+        <div class="lobby-content">
+          <!-- 4 Player Slots -->
+          <div class="slots-container">
+            <h3>TEAM ROSTER (EXACTLY 4 PLAYERS)</h3>
+            <div id="lobby-player-slots" class="slots-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Character Role Selection -->
+          <div class="roles-container">
+            <h3>CHOOSE YOUR SPECIALTY</h3>
+            <div class="roles-grid">
+              <div class="role-select-card" data-role="detective">
+                <div class="role-badge orange">🔍 DETECTIVE</div>
+                <h4>Evidence & History</h4>
+                <p>Receives historical murder timeline and clues about hidden lock codes.</p>
+              </div>
+              <div class="role-select-card" data-role="engineer">
+                <div class="role-badge blue">⚙️ ENGINEER</div>
+                <h4>Circuits & Machines</h4>
+                <p>Has access to electrical blueprints and restores laboratory power.</p>
+              </div>
+              <div class="role-select-card" data-role="explorer">
+                <div class="role-badge green">🧭 EXPLORER</div>
+                <h4>Secret Compartments</h4>
+                <p>Discovers the Golden Key location and navigates hidden passages.</p>
+              </div>
+              <div class="role-select-card" data-role="analyst">
+                <div class="role-badge purple">📜 ANALYST</div>
+                <h4>Ciphers & Decryption</h4>
+                <p>Decodes Roman numerals, ancient alphabets, and frequency harmonics.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lobby-footer">
+          <button id="btn-toggle-ready" class="secondary-btn">Ready Up</button>
+          <button id="btn-start-match" class="gold-btn" style="display: none;" disabled>START INVESTIGATION (4/4)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. STORY INTRO BRIEFING -->
+    <div id="screen-intro" class="screen-overlay hidden">
+      <div class="intro-box">
+        <div class="intro-banner">CONFIDENTIAL MISSION BRIEFING</div>
+        <h2 class="intro-title">LORD BLACKWOOD'S ESTATE</h2>
+        <div class="intro-lore">
+          <p>Twenty years ago, eccentric industrialist Lord Blackwood vanished without a trace inside this sealed manor. Whispers echo of a priceless <strong>200-carat Blue Star Diamond</strong> hidden within a mechanized vault.</p>
+          <p>Each of you possesses one piece of the puzzle. <strong>No single person can escape alone.</strong> You have exactly <strong>15 minutes</strong> before the manor’s automated lockdown locks you inside forever.</p>
+        </div>
+
+        <div class="intro-assignment">
+          <div id="intro-role-icon" class="role-large-icon">🔍</div>
+          <div>
+            <div class="assignment-label">YOUR ASSIGNED ROLE:</div>
+            <h3 id="intro-role-title">DETECTIVE</h3>
+            <p id="intro-role-mission">Find physical evidence and lead your team to the vault.</p>
+          </div>
+        </div>
+
+        <button id="btn-begin-game" class="gold-btn">ENTER THE MANSION</button>
+      </div>
+    </div>
+
+    <!-- 5. IN-GAME HUD -->
+    <div id="screen-hud" class="screen-hud hidden">
+      <!-- Top Navigation & Status -->
+      <div class="hud-top">
+        <div class="hud-top-left">
+          <div class="pill-badge code-pill">ROOM: <span id="hud-room-code">----</span></div>
+          <div id="hud-room-name" class="pill-badge room-pill">MAIN HALL</div>
+        </div>
+
+        <div class="hud-top-center">
+          <div id="hud-timer" class="timer-display">15:00</div>
+          <div id="hud-objective" class="objective-display">Find the Golden Key hidden in the Main Hall cabinet.</div>
+        </div>
+
+        <div class="hud-top-right">
+          <button id="btn-hud-clues" class="hud-icon-btn gold-border" title="Private Role Clues">
+            <span>📜</span> <span class="btn-label">MY CLUES</span>
+          </button>
+          <button id="btn-hud-inventory" class="hud-icon-btn gold-border" title="Shared Team Inventory">
+            <span>🗝️</span> <span class="btn-label">SATCHEL</span>
+          </button>
+          <button id="btn-toggle-chat" class="hud-icon-btn" title="Toggle Chat">
+            <span>💬</span> <span class="btn-label">CHAT</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Left Roster Widget -->
+      <div class="hud-left-roster">
+        <div class="roster-header">INVESTIGATORS</div>
+        <div id="hud-team-list" class="roster-list">
+          <!-- Dynamic Team List -->
+        </div>
+      </div>
+
+      <!-- Pedestal Simultaneous Tracker (Secret Basement) -->
+      <div id="pedestal-bar" class="pedestal-tracker">
+        <div class="ped-title">⚡ VAULT SYNCHRONIZER (ALL 4 REQUIRED)</div>
+        <div class="ped-grid">
+          <div class="pedestal-indicator" data-ped="0">
+            <span class="ped-role">DETECTIVE</span>
+            <span class="ped-user">[OPEN]</span>
+          </div>
+          <div class="pedestal-indicator" data-ped="1">
+            <span class="ped-role">ENGINEER</span>
+            <span class="ped-user">[OPEN]</span>
+          </div>
+          <div class="pedestal-indicator" data-ped="2">
+            <span class="ped-role">EXPLORER</span>
+            <span class="ped-user">[OPEN]</span>
+          </div>
+          <div class="pedestal-indicator" data-ped="3">
+            <span class="ped-role">ANALYST</span>
+            <span class="ped-user">[OPEN]</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Interaction Prompt -->
+      <div id="hud-interact-prompt" class="interact-prompt hidden">
+        [E] Examine Cabinet
+      </div>
+
+      <!-- Mobile Touch Controls -->
+      <div id="joystick-zone" class="joystick-container">
+        <div id="joystick-thumb" class="joystick-knob"></div>
+      </div>
+      <div id="camera-touch-zone" class="camera-touch-pad"></div>
+      <button id="btn-mobile-interact" class="mobile-action-btn">
+        <span>INVESTIGATE</span>
+        <small>[E]</small>
+      </button>
+
+      <!-- Bottom Chat Drawer -->
+      <div id="chat-drawer" class="chat-drawer">
+        <div class="chat-drawer-header">
+          <span>TEAM RADIO (SHARED COMMUNICATION)</span>
+        </div>
+        <div id="chat-messages-container" class="chat-stream">
+          <!-- Chat bubbles -->
+        </div>
+        <div class="chat-quick-chips">
+          <span class="chat-chip">I found a clue!</span>
+          <span class="chat-chip">Come to Library!</span>
+          <span class="chat-chip">Step on switch!</span>
+          <span class="chat-chip">Check your clues!</span>
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" id="chat-text-input" placeholder="Type clue or message to team..." maxlength="180">
+          <button id="btn-send-chat" class="gold-btn send-btn">SEND</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. MODAL: PRIVATE ROLE CLUES -->
+    <div id="modal-clues" class="ui-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>📜 CONFIDENTIAL DOSSIER</h3>
+          <button id="btn-close-clues" class="modal-close">&times;</button>
+        </div>
+        <p class="modal-intro">These documents are visible ONLY to your specific role. Communicate details via team chat to solve puzzles!</p>
+        <div id="clues-list-container" class="clues-stack">
+          <!-- Dynamic clue cards -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. MODAL: SHARED INVENTORY -->
+    <div id="modal-inventory" class="ui-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🗝️ SHARED EXPEDITION SATCHEL</h3>
+          <button id="btn-close-inventory" class="modal-close">&times;</button>
+        </div>
+        <p class="modal-intro">Key items collected by any team member are immediately shared with all investigators.</p>
+        <div id="inventory-list-container" class="inventory-stack">
+          <!-- Dynamic inventory cards -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. MODAL: PUZZLE 2 LIBRARY CIPHER SAFE -->
+    <div id="modal-library-cipher" class="ui-modal hidden">
+      <div class="modal-card keypad-modal">
+        <div class="modal-header">
+          <h3>📖 LIBRARY SECRET CIPHER</h3>
+          <button id="btn-close-cipher" class="modal-close">&times;</button>
+        </div>
+        <p class="modal-desc">Combine team clues (historical year, Roman numerals, clock plaque) to deduce the 4-digit combination.</p>
+
+        <div id="cipher-code-display" class="cipher-display">_ _ _ _</div>
+        <div id="cipher-feedback" class="feedback-msg">Enter 4-digit historical year</div>
+
+        <div id="cipher-keypad" class="keypad-grid">
+          <button data-val="1">1</button>
+          <button data-val="2">2</button>
+          <button data-val="3">3</button>
+          <button data-val="4">4</button>
+          <button data-val="5">5</button>
+          <button data-val="6">6</button>
+          <button data-val="7">7</button>
+          <button data-val="8">8</button>
+          <button data-val="9">9</button>
+          <button data-val="clear" class="btn-clear">CLR</button>
+          <button data-val="0">0</button>
+          <button data-val="enter" class="btn-enter">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. MODAL: PUZZLE 3 LABORATORY ELECTRICAL GRID -->
+    <div id="modal-electrical-grid" class="ui-modal hidden">
+      <div class="modal-card grid-modal">
+        <div class="modal-header">
+          <h3>⚡ ELECTRICAL GENERATOR POWER GRID</h3>
+          <button id="btn-close-grid" class="modal-close">&times;</button>
+        </div>
+        <div id="grid-role-note" class="grid-note"></div>
+        <div id="grid-feedback" class="feedback-msg">Connect all 4 conduits to their corresponding terminals.</div>
+
+        <div class="circuit-board">
+          <!-- Left: Wires -->
+          <div class="wire-column">
+            <h4>COLOR CONDUIT</h4>
+            <button class="wire-port red" data-wire="Red">🔴 Red Wire</button>
+            <button class="wire-port blue" data-wire="Blue">🔵 Blue Wire</button>
+            <button class="wire-port green" data-wire="Green">🟢 Green Wire</button>
+            <button class="wire-port yellow" data-wire="Yellow">🟡 Yellow Wire</button>
+          </div>
+
+          <!-- Right: Terminals -->
+          <div class="terminal-column">
+            <h4>TERMINAL SOCKET</h4>
+            <button class="terminal-socket" data-terminal="1">
+              <span>Terminal 1 (High Voltage)</span>
+              <span class="plug-indicator">[EMPTY]</span>
+            </button>
+            <button class="terminal-socket" data-terminal="2">
+              <span>Terminal 2 (Step-Down)</span>
+              <span class="plug-indicator">[EMPTY]</span>
+            </button>
+            <button class="terminal-socket" data-terminal="3">
+              <span>Terminal 3 (Basement Conduit)</span>
+              <span class="plug-indicator">[EMPTY]</span>
+            </button>
+            <button class="terminal-socket" data-terminal="4">
+              <span>Terminal 4 (Safety Ground)</span>
+              <span class="plug-indicator">[EMPTY]</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-modal-actions">
+          <button id="btn-reset-grid" class="secondary-btn">Reset Connections</button>
+          <button id="btn-submit-grid" class="gold-btn">ENGAGE POWER SWITCH</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. END GAME / RESULTS SCREEN -->
+    <div id="screen-endgame" class="screen-overlay hidden">
+      <div class="endgame-box">
+        <div id="endgame-banner" class="endgame-banner">★ VICTORY ACHIEVED ★</div>
+        <h2 id="endgame-title" class="endgame-title">THE DIAMOND IS SECURED!</h2>
+        <p id="endgame-reason" class="endgame-reason">The team escaped Blackwood Manor with the missing 200-carat diamond.</p>
+
+        <div class="stats-overview-grid">
+          <div class="stat-card">
+            <span class="stat-label">TOTAL TEAM SCORE</span>
+            <span id="endgame-score" class="stat-number">8,450</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">TIME TAKEN</span>
+            <span id="endgame-time" class="stat-number">07m 24s</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">PUZZLES SOLVED</span>
+            <span id="endgame-puzzles" class="stat-number">4 Solved</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">OBJECTS FOUND</span>
+            <span id="endgame-items" class="stat-number">2 Found</span>
+          </div>
+        </div>
+
+        <div class="contributions-table-container">
+          <h3>INVESTIGATOR CONTRIBUTIONS</h3>
+          <table class="contributions-table">
+            <thead>
+              <tr>
+                <th>Investigator</th>
+                <th>Puzzles Solved</th>
+                <th>Objects Found</th>
+                <th>Clues Shared</th>
+              </tr>
+            </thead>
+            <tbody id="endgame-contributions">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <button id="btn-play-again" class="gold-btn">PLAY AGAIN</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
