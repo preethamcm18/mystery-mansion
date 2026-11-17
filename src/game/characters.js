@@ -195,8 +195,12 @@ export class Character {
     texture.minFilter = THREE.LinearFilter;
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
     this.nameplate = new THREE.Sprite(spriteMat);
-    this.nameplate.position.y = 2.5;
-    this.nameplate.scale.set(2.4, 0.8, 1);
+    this.nameplate.position.y = 2.35;
+    this.nameplate.scale.set(1.9, 0.65, 1);
+    // Hide nameplate on local player to keep screen clean and cinematic
+    if (this.isLocal) {
+      this.nameplate.visible = false;
+    }
     this.group.add(this.nameplate);
   }
 

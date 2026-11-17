@@ -225,10 +225,14 @@
         <small>[E]</small>
       </button>
 
-      <!-- Bottom Chat Drawer -->
+      <!-- Floating Mini Feed for Unobtrusive Chat -->
+      <div id="chat-floating-feed" class="chat-floating-feed"></div>
+
+      <!-- Sleek Collapsible Bottom-Left Chat Drawer -->
       <div id="chat-drawer" class="chat-drawer">
         <div class="chat-drawer-header">
-          <span>TEAM RADIO (SHARED COMMUNICATION)</span>
+          <span>📻 TEAM RADIO</span>
+          <button id="btn-close-chat" class="chat-close-btn" title="Close Chat">&times;</button>
         </div>
         <div id="chat-messages-container" class="chat-stream">
           <!-- Chat bubbles -->
@@ -237,10 +241,10 @@
           <span class="chat-chip">I found a clue!</span>
           <span class="chat-chip">Come to Library!</span>
           <span class="chat-chip">Step on switch!</span>
-          <span class="chat-chip">Check your clues!</span>
+          <span class="chat-chip">Check clues!</span>
         </div>
         <div class="chat-input-bar">
-          <input type="text" id="chat-text-input" placeholder="Type clue or message to team..." maxlength="180">
+          <input type="text" id="chat-text-input" placeholder="Type clue [Enter to send]..." maxlength="180">
           <button id="btn-send-chat" class="gold-btn send-btn">SEND</button>
         </div>
       </div>

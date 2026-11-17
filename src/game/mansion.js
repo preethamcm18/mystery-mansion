@@ -17,41 +17,46 @@ export class Mansion {
   }
 
   createMaterials() {
-    // Elegant procedural canvas textures for rich Victorian feel without heavy network loads
+    // Generate Rich Procedural Canvas Textures
+    const woodTex = this.createWoodTexture();
+    const stoneTex = this.createStoneTexture();
+    const wallpaperTex = this.createWallpaperTexture();
+    const rugTex = this.createRugTexture();
+
     return {
       woodFloor: new THREE.MeshStandardMaterial({
-        color: 0x3d2314,
-        roughness: 0.6,
+        map: woodTex,
+        roughness: 0.55,
         metalness: 0.1
       }),
       darkWall: new THREE.MeshStandardMaterial({
-        color: 0x1f232b,
-        roughness: 0.85,
-        metalness: 0.15
-      }),
-      woodPanel: new THREE.MeshStandardMaterial({
-        color: 0x2b170c,
-        roughness: 0.5,
+        map: wallpaperTex,
+        roughness: 0.75,
         metalness: 0.1
       }),
+      woodPanel: new THREE.MeshStandardMaterial({
+        color: 0x3d2012,
+        roughness: 0.45,
+        metalness: 0.15
+      }),
       stoneWall: new THREE.MeshStandardMaterial({
-        color: 0x262a30,
-        roughness: 0.9,
+        map: stoneTex,
+        roughness: 0.85,
         metalness: 0.1
       }),
       rug: new THREE.MeshStandardMaterial({
-        color: 0x6e1b1b,
+        map: rugTex,
         roughness: 0.95
       }),
       goldMetal: new THREE.MeshStandardMaterial({
         color: 0xd4af37,
-        metalness: 0.9,
-        roughness: 0.25
+        metalness: 0.92,
+        roughness: 0.22
       }),
       ironMetal: new THREE.MeshStandardMaterial({
-        color: 0x1c1e22,
-        metalness: 0.8,
-        roughness: 0.4
+        color: 0x1f2229,
+        metalness: 0.85,
+        roughness: 0.35
       }),
       bookSpine: new THREE.MeshStandardMaterial({
         color: 0x4a1e1b,
@@ -65,6 +70,126 @@ export class Mansion {
         metalness: 0.5
       })
     };
+  }
+
+  createWoodTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#3a2012';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Planks
+    const plankH = 64;
+    for (let y = 0; y < 512; y += plankH) {
+      ctx.fillStyle = (y / plankH) % 2 === 0 ? '#452616' : '#331c10';
+      ctx.fillRect(0, y, 512, plankH - 2);
+      ctx.fillStyle = '#1a0e08';
+      ctx.fillRect(0, y + plankH - 2, 512, 2); // Groove
+
+      // Grain lines
+      ctx.strokeStyle = 'rgba(20, 10, 5, 0.25)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + Math.random() * plankH);
+        ctx.lineTo(512, y + Math.random() * plankH);
+        ctx.stroke();
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 4);
+    return tex;
+  }
+
+  createStoneTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#22252c';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Stone blocks with mortar
+    const blockH = 48;
+    const blockW = 96;
+    for (let row = 0; row < 12; row++) {
+      const offsetX = (row % 2) * (blockW / 2);
+      for (let col = -1; col < 7; col++) {
+        const x = col * blockW + offsetX;
+        const y = row * blockH;
+        const shade = Math.floor(Math.random() * 20 - 10);
+        ctx.fillStyle = `rgb(${40 + shade}, ${44 + shade}, ${50 + shade})`;
+        ctx.fillRect(x + 2, y + 2, blockW - 4, blockH - 4);
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 2);
+    return tex;
+  }
+
+  createWallpaperTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256;
+    c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1c2028';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Victorian damask pattern
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
+    ctx.lineWidth = 2;
+    for (let x = 32; x < 256; x += 64) {
+      for (let y = 32; y < 256; y += 64) {
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - 20, y);
+        ctx.lineTo(x + 20, y);
+        ctx.moveTo(x, y - 20);
+        ctx.lineTo(x, y + 20);
+        ctx.stroke();
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 2);
+    return tex;
+  }
+
+  createRugTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#611616';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Gold borders
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(16, 16, 480, 480);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(36, 36, 440, 440);
+
+    // Central medallion
+    ctx.fillStyle = '#400d0d';
+    ctx.beginPath();
+    ctx.arc(256, 256, 120, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    const tex = new THREE.CanvasTexture(c);
+    return tex;
   }
 
   addCollider(minX, maxX, minZ, maxZ, name = 'wall') {

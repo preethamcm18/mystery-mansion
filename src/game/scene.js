@@ -24,9 +24,9 @@ export class GameScene {
       powerPreference: 'high-performance'
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.25;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -35,50 +35,77 @@ export class GameScene {
     this.blackout = false;
 
     this.setupLighting();
+    this.setupDustParticles();
     this.setupResizeListener();
   }
 
   setupLighting() {
     // Ambient moonlight
-    this.ambientLight = new THREE.AmbientLight(0x1a2238, 0.6);
+    this.ambientLight = new THREE.AmbientLight(0x222a3a, 0.7);
     this.scene.add(this.ambientLight);
 
-    // Hemisphere light for soft gothic ceiling contrast
-    const hemiLight = new THREE.HemisphereLight(0x2a334a, 0x110d0a, 0.4);
+    // Hemisphere light for gothic ceiling contrast
+    const hemiLight = new THREE.HemisphereLight(0x323c52, 0x140e08, 0.5);
     this.scene.add(hemiLight);
 
-    // Chandelier 1: Main Hall
-    this.createChandelier(0, 5.5, 0, 0xffb359, 2.2, 18);
+    // Single Primary Directional Sunlight/Moonlight with Shadow (Ultra-smooth 60fps)
+    this.dirLight = new THREE.DirectionalLight(0xa5c4f2, 1.2);
+    this.dirLight.position.set(10, 15, 8);
+    this.dirLight.castShadow = true;
+    this.dirLight.shadow.mapSize.width = 1024;
+    this.dirLight.shadow.mapSize.height = 1024;
+    this.dirLight.shadow.camera.near = 1;
+    this.dirLight.shadow.camera.far = 40;
+    this.dirLight.shadow.camera.left = -20;
+    this.dirLight.shadow.camera.right = 20;
+    this.dirLight.shadow.camera.top = 20;
+    this.dirLight.shadow.camera.bottom = -20;
+    this.dirLight.shadow.bias = -0.001;
+    this.scene.add(this.dirLight);
 
-    // Chandelier 2: Library
-    this.createChandelier(0, 5.5, -20, 0xffa44a, 1.9, 16);
+    // Chandeliers (Atmospheric Point Lights without costly point shadow maps)
+    this.createChandelier(0, 5.2, 0, 0xffa44a, 2.5, 20);
+    this.createChandelier(0, 5.2, -18, 0xff9940, 2.2, 18);
+    this.createChandelier(17, 5.2, -20, 0x48b8ff, 2.4, 18);
+    this.createChandelier(17, 4.5, -4, 0xba68c8, 2.4, 18);
+    this.createChandelier(32, 4.5, -4, 0x00d2ff, 2.6, 16);
 
-    // Chandelier 3: Laboratory
-    this.createChandelier(22, 5.5, -20, 0x58c3ff, 2.0, 16);
-
-    // Chandelier 4: Secret Basement & Vault
-    this.createChandelier(22, 4.5, 0, 0xba68c8, 2.2, 16);
-
-    // Sconces with warm flicker
-    this.createWallSconce(-7.5, 2.8, 4, 0xff9d3b);
-    this.createWallSconce(7.5, 2.8, 4, 0xff9d3b);
-    this.createWallSconce(-7.5, 2.8, -4, 0xff9d3b);
-    this.createWallSconce(7.5, 2.8, -4, 0xff9d3b);
+    // Wall sconces with warm flame colors
+    this.createWallSconce(-7.5, 2.8, 4, 0xff9430);
+    this.createWallSconce(7.5, 2.8, 4, 0xff9430);
+    this.createWallSconce(-7.5, 2.8, -4, 0xff9430);
+    this.createWallSconce(7.5, 2.8, -4, 0xff9430);
 
     // Player personal torchlight/flashlight
-    this.torchLight = new THREE.PointLight(0xffeedd, 1.2, 10);
+    this.torchLight = new THREE.PointLight(0xffeedd, 1.4, 12);
     this.torchLight.castShadow = false;
     this.scene.add(this.torchLight);
+  }
+
+  setupDustParticles() {
+    const pCount = 80;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(pCount * 3);
+    for (let i = 0; i < pCount; i++) {
+      pPos[i * 3] = (Math.random() - 0.5) * 30 + 10;
+      pPos[i * 3 + 1] = Math.random() * 5 + 0.5;
+      pPos[i * 3 + 2] = (Math.random() - 0.5) * 30 - 10;
+    }
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const pMat = new THREE.PointsMaterial({
+      color: 0xffd288,
+      size: 0.06,
+      transparent: true,
+      opacity: 0.4
+    });
+    this.dustParticles = new THREE.Points(pGeo, pMat);
+    this.scene.add(this.dustParticles);
   }
 
   createChandelier(x, y, z, color, intensity, distance) {
     const light = new THREE.PointLight(color, intensity, distance);
     light.position.set(x, y, z);
-    light.castShadow = true;
-    light.shadow.mapSize.width = 512;
-    light.shadow.mapSize.height = 512;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = distance;
+    light.castShadow = false; // Point-light shadows disabled for ultra-fast 60 FPS
     this.scene.add(light);
     this.lights.push({ light, baseIntensity: intensity });
 

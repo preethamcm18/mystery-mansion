@@ -124,8 +124,45 @@ class GameManager {
       return { success: false, error: 'Room not found. Check the code and try again.' };
     }
 
+    // Support Seamless Reconnection if game is already in progress
     if (room.status !== 'lobby') {
-      return { success: false, error: 'Match already in progress.' };
+      let reconnectSlot = null;
+      for (const [oldId, p] of room.players.entries()) {
+        if (!p.connected || p.name === playerName) {
+          reconnectSlot = { oldId, player: p };
+          break;
+        }
+      }
+
+      if (reconnectSlot) {
+        const { oldId, player } = reconnectSlot;
+        room.players.delete(oldId);
+        this.playerRoomMap.delete(oldId);
+
+        player.id = socket.id;
+        player.connected = true;
+        room.players.set(socket.id, player);
+        this.playerRoomMap.set(socket.id, code);
+        socket.join(code);
+
+        setTimeout(() => {
+          socket.emit('game_started', {
+            roomCode: code,
+            player,
+            players: Array.from(room.players.values()),
+            roleInfo: ROLE_INFO[player.role],
+            privateClues: this.getPrivateCluesForRole(room, player.role),
+            inventory: room.inventory,
+            unlockedDoors: Array.from(room.unlockedDoors),
+            timeRemaining: room.timeRemaining
+          });
+          this.sendSystemMessage(code, `🟢 ${player.name} (${ROLE_INFO[player.role].title}) has reconnected!`);
+        }, 150);
+
+        return { success: true, roomCode: code, player, reconnected: true };
+      } else {
+        return { success: false, error: 'Match in progress and all 4 player slots are occupied.' };
+      }
     }
 
     if (room.players.size >= 4 && !room.players.has(socket.id)) {

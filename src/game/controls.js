@@ -15,9 +15,9 @@ export class Controls {
 
     // Camera angles
     this.yaw = 0; // Horizontal orbit around player
-    this.pitch = 0.25; // Vertical tilt
-    this.cameraDistance = 4.5;
-    this.cameraHeight = 1.6;
+    this.pitch = 0.28; // Vertical tilt
+    this.cameraDistance = 6.2; // Pulled back for true 3D third-person view
+    this.cameraHeight = 2.0;
 
     // Input state
     this.keys = {

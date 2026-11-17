@@ -255,8 +255,12 @@ class MysteryMansionGame {
       const rotY = this.localPlayer.group.rotation.y;
       const isMoving = this.localPlayer.isMoving;
 
-      // Broadcast position to server throttled
-      this.network.sendMove(pos.x, pos.y, pos.z, rotY, isMoving ? 'walk' : 'idle');
+      // Broadcast position to server throttled to ~16 Hz (eliminates network lag)
+      this.netTimer = (this.netTimer || 0) + delta;
+      if (this.netTimer >= 0.06) {
+        this.netTimer = 0;
+        this.network.sendMove(pos.x, pos.y, pos.z, rotY, isMoving ? 'walk' : 'idle');
+      }
 
       // Update room indicator
       const room = this.detectCurrentRoom(pos.x, pos.z);

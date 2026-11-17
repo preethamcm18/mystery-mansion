@@ -239,18 +239,40 @@ export class UIManager {
       });
     }
 
-    // In-Game: Chat Drawer Toggle
+    // In-Game: Chat Drawer Toggle & Shortcuts
     const btnToggleChat = document.getElementById('btn-toggle-chat');
-    if (btnToggleChat) {
-      btnToggleChat.addEventListener('click', () => {
-        this.chatDrawer.classList.toggle('expanded');
-        audio.playInteract();
-      });
-    }
-
-    // In-Game: Chat Send
+    const btnCloseChat = document.getElementById('btn-close-chat');
     const chatInput = document.getElementById('chat-text-input');
     const btnSendChat = document.getElementById('btn-send-chat');
+
+    const toggleChat = (forceOpen) => {
+      const isOpen = forceOpen !== undefined ? forceOpen : !this.chatDrawer.classList.contains('open');
+      this.chatDrawer.classList.toggle('open', isOpen);
+      if (isOpen && chatInput) {
+        setTimeout(() => chatInput.focus(), 50);
+      }
+      audio.playInteract();
+    };
+
+    if (btnToggleChat) {
+      btnToggleChat.addEventListener('click', () => toggleChat());
+    }
+
+    if (btnCloseChat) {
+      btnCloseChat.addEventListener('click', () => toggleChat(false));
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (!this.chatDrawer.classList.contains('open')) {
+          toggleChat(true);
+        }
+      } else if (e.key === 'Escape') {
+        if (this.chatDrawer.classList.contains('open')) {
+          toggleChat(false);
+        }
+      }
+    });
 
     const doSendChat = () => {
       const msg = (chatInput.value || '').trim();
@@ -265,6 +287,7 @@ export class UIManager {
     if (chatInput) {
       chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
           doSendChat();
         }
       });
@@ -498,9 +521,26 @@ export class UIManager {
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 
-    // Toast notice on screen if chat drawer is closed
-    if (!this.chatDrawer.classList.contains('expanded') && data.senderRole === 'system') {
-      this.showToast(data.message);
+    // If chat drawer is closed, show a sleek floating notification in bottom-left
+    if (!this.chatDrawer.classList.contains('open')) {
+      const feed = document.getElementById('chat-floating-feed');
+      if (feed) {
+        const item = document.createElement('div');
+        item.className = 'chat-feed-bubble';
+        if (data.senderRole === 'system') {
+          item.innerHTML = `<span style="color:#d4af37">📜</span> ${data.message}`;
+        } else {
+          item.innerHTML = `<span style="color:${data.roleColor};font-weight:700">[${data.roleTitle}] ${data.senderName}:</span> ${data.message}`;
+        }
+        feed.appendChild(item);
+        // Keep at most 3 items in feed
+        while (feed.children.length > 3) {
+          feed.removeChild(feed.firstChild);
+        }
+        setTimeout(() => {
+          if (item.parentNode) item.parentNode.removeChild(item);
+        }, 7000);
+      }
     }
   }
 

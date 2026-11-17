@@ -932,40 +932,91 @@ input[type="text"]:focus {
   .btn-label { display: none; }
 }
 
-/* Bottom Chat Drawer */
+/* Sleek Non-Intrusive Bottom-Left Chat Drawer */
 .chat-drawer {
   position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 560px;
-  max-width: 90%;
-  background: rgba(14, 16, 24, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
+  bottom: 24px;
+  left: 24px;
+  width: 360px;
+  max-width: calc(100vw - 48px);
+  height: 250px;
+  background: rgba(10, 12, 18, 0.94);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 8px;
   padding: 10px 14px;
-  display: flex;
+  display: none; /* Collapsed by default - NEVER blocks 3D view */
   flex-direction: column;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85);
+  z-index: 50;
+  pointer-events: auto;
 }
 
-.chat-drawer.expanded {
-  height: 280px;
+.chat-drawer.open {
+  display: flex !important;
 }
 
 .chat-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  color: var(--gold);
   margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+}
+
+.chat-close-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.chat-close-btn:hover {
+  color: #fff;
+}
+
+/* Floating Recent Chat Feed when drawer is closed (shows last 2 messages unobtrusively in bottom-left) */
+.chat-floating-feed {
+  position: absolute;
+  bottom: 80px;
+  left: 24px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.chat-feed-bubble {
+  background: rgba(8, 10, 16, 0.85);
+  border-left: 3px solid var(--gold);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #f0f0f5;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  animation: feedFade 7s forwards ease-in-out;
+}
+
+@keyframes feedFade {
+  0% { opacity: 0; transform: translateY(8px); }
+  10% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-4px); }
 }
 
 .chat-stream {
   flex: 1;
   overflow-y: auto;
-  max-height: 160px;
   margin-bottom: 8px;
   display: flex;
   flex-direction: column;
