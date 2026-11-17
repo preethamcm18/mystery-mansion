@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: mystery-mansion-backend
+    name: mystery-mansion
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npm run build
     startCommand: node server/server.js
     envVars:
       - key: NODE_ENV
