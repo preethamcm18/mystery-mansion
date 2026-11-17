@@ -5,6 +5,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import GameManager from './gameManager.js';
 
@@ -28,28 +29,33 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Serve built frontend assets in production
-app.use(express.static(path.join(rootDir, 'dist')));
+// Serve built frontend assets if dist exists
+const distDir = path.join(rootDir, 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
 
-// Health check API
+// Health check endpoints for cloud load balancers (Render, Railway, AWS)
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({
+  res.status(200).json({
     status: 'healthy',
     game: 'Mystery Mansion',
-    activeRooms: gameManager.rooms.size,
+    activeRooms: gameManager ? gameManager.rooms.size : 0,
     uptime: process.uptime()
   });
 });
 
-// For client-side routing, serve index.html for unknown routes if dist exists
-app.use((req, res) => {
-  const indexPath = path.join(rootDir, 'dist', 'index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      // In dev mode when dist doesn't exist yet
-      res.status(200).send('Mystery Mansion Game Server Running. Use Vite for development or run "npm run build".');
-    }
-  });
+// Root endpoint: serve index.html if built, otherwise a clean 200 OK status
+app.get('/', (req, res) => {
+  const indexPath = path.join(distDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  return res.status(200).send('🏰 Mystery Mansion Game Server is LIVE & HEALTHY. WebSocket is ready.');
 });
 
 const gameManager = new GameManager(io);
